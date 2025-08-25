@@ -19,7 +19,7 @@ public class SpigotProxy extends JavaPlugin {
     private List<ChannelFuture> channelFutureList;
 
     @Override
-    public void onEnable() {
+    public void onLoad() {
         boolean isBuiltin = false;
         String configFile = null;
         String configKey = null;
@@ -79,6 +79,7 @@ public class SpigotProxy extends JavaPlugin {
         Object serverConnection = null;
         for (Method method : minecraftServer.getClass().getSuperclass().getMethods()) {
             if (method.getReturnType().getSimpleName().equals("ServerConnection")) {
+                if (method.getReturnType().getName().contains("retrooper")) continue;
                 getLogger().fine("getServerConnection: " + method);
                 serverConnection = method.invoke(minecraftServer);
                 break;
@@ -94,7 +95,6 @@ public class SpigotProxy extends JavaPlugin {
                 Type[] types = ((ParameterizedType) field.getGenericType()).getActualTypeArguments();
                 if (types.length == 1 && types[0] == ChannelFuture.class) {
                     field.setAccessible(true);
-                    getLogger().fine("channels: " + field);
                     this.channelFutureList = (List<ChannelFuture>) field.get(serverConnection);
                     break;
                 }
@@ -108,6 +108,7 @@ public class SpigotProxy extends JavaPlugin {
         for (ChannelFuture channelFuture : this.channelFutureList) {
             ChannelPipeline channelPipeline = channelFuture.channel().pipeline();
             ChannelHandler serverBootstrapAcceptor = channelPipeline.first();
+
             ChannelInitializer<?> oldChildHandler = ReflectionUtils.getPrivateField(serverBootstrapAcceptor.getClass(), serverBootstrapAcceptor, "childHandler");
             ReflectionUtils.setPrivateField(serverBootstrapAcceptor.getClass(), serverBootstrapAcceptor, "childHandler", new NettyChannelInitializer(oldChildHandler));
         }

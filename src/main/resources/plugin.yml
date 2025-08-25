@@ -1,4 +1,4 @@
-name: SpigotProxy
+name: ASpigotProxy
 main: nl.thijsalders.spigotproxy.SpigotProxy
 version: '${project.version}'
 authors: [thijs_a, riku6460]
